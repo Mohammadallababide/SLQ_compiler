@@ -620,13 +620,13 @@ K_VAR RANDOM_NAME '=' (NUMERIC_LITERAL | IDENTIFIER | ONE_CHAR_LETTER | use_rand
  RANDOM_NAME
  ;
  if_else_rule:
- (K_IF '('expr')' '{'(if_else_rule)* '}'
- |K_IF '('expr')' '{'(if_else_rule)*'}' K_ELSE '{'(if_else_rule)*'}'
- | K_IF '('expr')''{'(if_else_rule)*'}' K_ELSE K_IF'('expr ')''{'(if_else_rule)*'}' )
- | K_IF '(' expr ')' (call_function | creating_var)
+ (K_IF '('boolean_infunction_statment')' '{'(if_else_rule)* '}'
+ |K_IF '('boolean_infunction_statment')' '{'(if_else_rule)*'}' K_ELSE '{'(if_else_rule)*'}'
+ | K_IF '('boolean_infunction_statment')''{'(if_else_rule)*'}' K_ELSE K_IF'('boolean_infunction_statment ')''{'(if_else_rule)*'}' )
+ | K_IF '(' boolean_infunction_statment ')' (call_function | creating_var)
  ;
  while_rule:
- (K_WILE'('expr (',' expr)* ')' '{''}' |K_WILE'('expr (',' expr)* ')'';')
+ (K_WILE'('boolean_infunction_statment (',' boolean_infunction_statment)* ')' '{''}' |K_WILE'('boolean_infunction_statment (',' boolean_infunction_statment)* ')'';')
  ;
  do_while:
   K_DO
@@ -704,6 +704,63 @@ K_VAR use_random_name '[]'* ':'use_random_name'[]'*
 //todo add statment rule ....
 '}'
 ;
+arithmetic_infunction_statment
+    : IDENTIFIER (any_oprator)? ASSIGN
+                                    ((IDENTIFIER
+                                    | NUMERIC_LITERAL
+                                    | IDENTIFIER any_oprator NUMERIC_LITERAL
+                                    | NUMERIC_LITERAL any_oprator IDENTIFIER
+                                    | IDENTIFIER any_oprator IDENTIFIER
+                                    | NUMERIC_LITERAL any_oprator NUMERIC_LITERAL)
+                                    ( any_oprator IDENTIFIER
+                                    | any_oprator NUMERIC_LITERAL)*
+                                    )
+    | IDENTIFIER MINUS MINUS
+    | '-' '-' IDENTIFIER
+    | IDENTIFIER PLUS PLUS
+    | PLUS PLUS IDENTIFIER
+
+ ;
+ boolean_infunction_statment
+    : boolean_expr
+    | boolean_expr ((PIPE2 | AMP2 ) boolean_expr)*
+
+
+    //| IDENTIFIER any_boolean_oprator NUMERIC_LITERAL ((PIPE2 | AMP2 )(boolean_infunction_statment))*
+    //| NUMERIC_LITERAL any_boolean_oprator (IDENTIFIER
+    //                                      | NUMERIC_LITERAL
+    //                                      | OPEN_PAR boolean_infunction_statment CLOSE_PAR)
+    //                                      ((PIPE2 | AMP2 )(boolean_infunction_statment))*
+    //| NUMERIC_LITERAL any_boolean_oprator NUMERIC_LITERAL ((PIPE2 | AMP2 )(boolean_infunction_statment))*
+   // | '('boolean_infunction_statment')' (IDENTIFIER | boolean_infunction_statment )
+   // | (IDENTIFIER | boolean_infunction_statment ) '('boolean_infunction_statment')'
+ ;
+boolean_expr
+    : K_TRUE
+    | K_FALSE
+    | (IDENTIFIER | NUMERIC_LITERAL ) any_boolean_oprator ( IDENTIFIER | NUMERIC_LITERAL )
+    | OPEN_PAR (boolean_expr | arithmetic_infunction_statment) CLOSE_PAR any_boolean_oprator (IDENTIFIER | NUMERIC_LITERAL  )
+    | (IDENTIFIER | NUMERIC_LITERAL ) any_boolean_oprator OPEN_PAR (boolean_expr | arithmetic_infunction_statment) CLOSE_PAR
+    | (OPEN_PAR (boolean_expr | arithmetic_infunction_statment) CLOSE_PAR ) any_boolean_oprator OPEN_PAR (boolean_expr | arithmetic_infunction_statment) CLOSE_PAR
+    ;
+any_boolean_oprator
+    : EQ
+    | GT
+    | GT_EQ
+    | LT
+    | LT_EQ
+    | NOT_EQ1
+
+;
+
+ any_oprator
+    : STAR
+    | DIV
+    | POWER
+    | MOD
+    | PLUS
+    | MINUS
+    ;
 
 
 
@@ -969,6 +1026,7 @@ ASSIGN : '=';
 STAR : '*';
 PLUS : '+';
 MINUS : '-';
+POWER : '^';
 TILDE : '~';
 PIPE2 : '||';
 DIV : '/';
@@ -976,6 +1034,7 @@ MOD : '%';
 LT2 : '<<';
 GT2 : '>>';
 AMP : '&';
+AMP2 : '&&';
 PIPE : '|';
 LT : '<';
 LT_EQ : '<=';
@@ -1035,6 +1094,7 @@ K_EXCLUSIVE : E X C L U S I V E;
 K_EXISTS : E X I S T S;
 K_EXPLAIN : E X P L A I N;
 K_FAIL : F A I L;
+K_FALSE : F A L S E ;
 K_FOR : F O R;
 K_FOREIGN : F O R E I G N;
 K_FROM : F R O M;
@@ -1100,6 +1160,7 @@ K_TEMPORARY : T E M P O R A R Y;
 K_THEN : T H E N;
 K_TO : T O;
 K_TRANSACTION : T R A N S A C T I O N;
+K_TRUE : T R U E ;
 K_TRIGGER : T R I G G E R;
 K_UNION : U N I O N;
 K_UNIQUE : U N I Q U E;
