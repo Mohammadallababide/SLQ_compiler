@@ -752,9 +752,6 @@ any_boolean_oprator
     | NOT_EQ1
 
 ;
-
-
-
  any_oprator
     : STAR
     | DIV
